@@ -32,6 +32,7 @@ class Video:
         self.bus.connect('message', self.on_message)
         self.video_sink.connect('new-sample', self.on_video)
         self.EOS = Event() # End of Stream
+        self.frame_available = Event()
         self._frame = None
     def on_video(self, sink):
         """Handles video input"""
@@ -47,6 +48,7 @@ class Video:
             buffer=buffer.extract_dup(0, buffer.get_size()),
             dtype=np.uint8
         )
+        self.frame_available.set()
         return Gst.FlowReturn.OK
     def on_message(self, bus: Gst.Bus, message: Gst.Message):
         """Handles messages from the stream"""
@@ -63,12 +65,8 @@ class Video:
             print(err, debug)
         return True
     def get_frame(self):
-        frame = self._frame
-        self._frame = None
-        return frame
-    def frame_available(self):
-        """States whether or not another frame is available for grabbing"""
-        return self._frame is not None
+        self.frame_available.clear()
+        return self._frame
     def quit(self):
         self.pipeline.set_state(Gst.State.NULL)
         self.EOS.set()
@@ -78,8 +76,9 @@ video = Video()
 FPS = 30
 try:
     while not video.EOS.wait(1. / FPS):
-        if not video.frame_available():
-            continue
+        # Once we've waited the obligated FPS, then we wait for 
+        # a frame to actually become available.
+        video.frame_available.wait()
         frame = video.get_frame()
         cv2.imshow('frame', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
