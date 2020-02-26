@@ -4,6 +4,7 @@ import traceback
 import cv2
 import numpy as np
 from time import sleep
+from threading import Event
 
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GObject
@@ -30,7 +31,7 @@ class Video:
         self.video_sink = self.pipeline.get_by_name('appsink0')
         self.bus.connect('message', self.on_message)
         self.video_sink.connect('new-sample', self.on_video)
-        self.EOS = False # End of Stream
+        self.EOS = Event() # End of Stream
         self._frame = None
     def on_video(self, sink):
         """Handles video input"""
@@ -51,7 +52,7 @@ class Video:
         """Handles messages from the stream"""
         if message.type == Gst.MessageType.EOS:
             # Handle End of Stream
-            self.EOS = True
+            self.EOS.set()
             self.quit()
         elif message.type == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
@@ -70,20 +71,19 @@ class Video:
         return self._frame is not None
     def quit(self):
         self.pipeline.set_state(Gst.State.NULL)
-        self.EOS = False
+        self.EOS.set()
         
 
 video = Video()
 FPS = 30
 try:
-    while not video.EOS:
+    while not video.EOS.wait(1. / FPS):
         if not video.frame_available():
             continue
         frame = video.get_frame()
         cv2.imshow('frame', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-        sleep(1. / FPS)
 except Exception:
     traceback.print_exc()
     video.quit()
