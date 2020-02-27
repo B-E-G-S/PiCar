@@ -1,21 +1,18 @@
 import gi
-import sys
 import traceback
 import cv2
 import numpy as np
-from time import sleep
-from threading import Event
+import threading
 
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GObject
 
 Gst.init(None)
 
-
-class Video:
+class GStream:
     def __init__(self, port=5000):
         """Grabs a Gstreamer h264 encoded video stream"""
-        self.pipeline = Gst.parse_launch("udpsrc port=5000 ! \
+        self.pipeline = Gst.parse_launch(f"udpsrc port={port} ! \
                             application/x-rtp,payload=96 ! \
                             rtph264depay ! decodebin ! \
                             videoconvert ! \
@@ -31,8 +28,8 @@ class Video:
         self.video_sink = self.pipeline.get_by_name('appsink0')
         self.bus.connect('message', self.on_message)
         self.video_sink.connect('new-sample', self.on_video)
-        self.EOS = Event() # End of Stream
-        self.frame_available = Event()
+        self.EOS = threading.Event() # End of Stream
+        self.frame_available = threading.Event()
         self._frame = None
     def on_video(self, sink):
         """Handles video input"""
@@ -72,19 +69,31 @@ class Video:
         self.EOS.set()
         
 
-video = Video()
-FPS = 30
-try:
-    while not video.EOS.wait(1. / FPS):
-        # Once we've waited the obligated FPS, then we wait for 
-        # a frame to actually become available.
-        video.frame_available.wait()
-        frame = video.get_frame()
-        cv2.imshow('frame', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-except Exception:
-    traceback.print_exc()
-    video.quit()
 
-cv2.destroyAllWindows()
+class VideoReceive(threading.Thread):
+    def __init__(self, on_video, fps = 30, port = 5000):
+        """Class that allows you to specify what to do when a frame is received.
+        on_video: A function that is given a frame when available, must return true to continue
+        FPS: The frames per second to enforce
+        port: The port to listen on
+        """
+        self.on_video = on_video
+        self.FPS = fps
+        self.gstream = GStream(port)
+        threading.Thread.__init__(self)
+    def run(self):
+        try:
+            while not self.gstream.EOS.wait(1. / self.FPS):
+                # Once we've waited the obligated FPS, then we wait for 
+                # a frame to actually become available.
+                self.gstream.frame_available.wait()
+                frame = self.gstream.get_frame()
+                resume = self.on_video(frame)
+                if resume == False:
+                    break
+        except Exception:
+            traceback.print_exc()
+            self.gstream.quit()
+    def stop(self):
+        self.gstream.EOS.set()
+    
