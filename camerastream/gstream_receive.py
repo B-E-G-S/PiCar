@@ -10,9 +10,9 @@ from gi.repository import Gst, GObject
 Gst.init(None)
 
 class GStream:
-    def __init__(self, port=5000):
+    def __init__(self, multicastaddress = "224.1.1.1", port=5000):
         """Grabs a Gstreamer h264 encoded video stream"""
-        self.pipeline = Gst.parse_launch(f"udpsrc port={port} ! \
+        self.pipeline = Gst.parse_launch(f"udpsrc multicast-group={multicastaddress} auto-multicast=true port={port} ! \
                             application/x-rtp,payload=96 ! \
                             rtph264depay ! decodebin ! \
                             videoconvert ! \
@@ -71,7 +71,7 @@ class GStream:
 
 
 class VideoReceive(threading.Thread):
-    def __init__(self, on_video, fps = 30, port = 5000):
+    def __init__(self, on_video, fps = 30, multicastaddress = "224.1.1.1", port = 5000):
         """Class that allows you to specify what to do when a frame is received.
         on_video: A function that is given a frame when available, must return true to continue
         FPS: The frames per second to enforce
@@ -79,7 +79,7 @@ class VideoReceive(threading.Thread):
         """
         self.on_video = on_video
         self.FPS = fps
-        self.gstream = GStream(port)
+        self.gstream = GStream(multicastaddress, port)
         threading.Thread.__init__(self)
     def run(self):
         try:
