@@ -71,7 +71,7 @@ class GStream:
 
 
 class VideoReceive(threading.Thread):
-    def __init__(self, on_video, fps = 30, multicastaddress = "224.1.1.1", port = 5000):
+    def __init__(self, on_video, fps = -1, multicastaddress = "224.1.1.1", port = 5000):
         """Class that allows you to specify what to do when a frame is received.
         on_video: A function that is given a frame when available, must return true to continue
         FPS: The frames per second to enforce
@@ -83,7 +83,8 @@ class VideoReceive(threading.Thread):
         threading.Thread.__init__(self)
     def run(self):
         try:
-            while not self.gstream.EOS.wait(1. / self.FPS):
+            eos = lambda : self.gstream.EOS.is_set() if self.FPS == -1 else self.gstream.EOS.wait(1. / self.FPS)
+            while not eos():
                 # Once we've waited the obligated FPS, then we wait for 
                 # a frame to actually become available.
                 self.gstream.frame_available.wait()
