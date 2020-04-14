@@ -1,7 +1,4 @@
 from setuptools import setup, find_packages
-# pyobject?
-#opencv
-# numpy
 setup(name="picar",
       version="0.0.1",
       packages=find_packages(),

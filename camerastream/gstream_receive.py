@@ -11,22 +11,22 @@ Gst.init(None)
 
 class GStream:
     def __init__(self, multicastaddress = "224.1.1.1", port=5000):
-        """Grabs a Gstreamer h264 encoded video stream"""
-        self.pipeline = Gst.parse_launch(f"udpsrc multicast-group={multicastaddress} auto-multicast=true port={port} ! \
+        """Grabs a Gstreamer h264 encoded video stream from multicast"""
+        self._pipeline = Gst.parse_launch(f"udpsrc multicast-group={multicastaddress} auto-multicast=true port={port} ! \
                             application/x-rtp,payload=96 ! \
                             rtph264depay ! decodebin ! \
                             videoconvert ! \
                             video/x-raw,format=(string)BGR ! \
                             videoconvert ! \
                             appsink emit-signals=true sync=false max-buffers=2 drop=true")
-        self.bus = self.pipeline.get_bus()
+        self._bus = self._pipeline.get_bus()
         # Allow bus to emit messages to main thread
-        self.bus.add_signal_watch()
+        self._bus.add_signal_watch()
         # Start pipeline
-        self.pipeline.set_state(Gst.State.PLAYING)
+        self._pipeline.set_state(Gst.State.PLAYING)
         # Get Video Sink
-        self.video_sink = self.pipeline.get_by_name('appsink0')
-        self.bus.connect('message', self.on_message)
+        self.video_sink = self._pipeline.get_by_name('appsink0')
+        self._bus.connect('message', self.on_message)
         self.video_sink.connect('new-sample', self.on_video)
         self.EOS = threading.Event() # End of Stream
         self.frame_available = threading.Event()
@@ -56,16 +56,17 @@ class GStream:
         elif message.type == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
             print(err, debug)
-            loop.quit()
         elif message.type == Gst.MessageType.WARNING:
             err, debug = message.parse_warning()
             print(err, debug)
         return True
     def get_frame(self):
+        """Grabs a frame from class memory"""
         self.frame_available.clear()
         return self._frame
     def quit(self):
-        self.pipeline.set_state(Gst.State.NULL)
+        """Stops the pipeline and emits a end-of-stream event"""
+        self._pipeline.set_state(Gst.State.NULL)
         self.EOS.set()
         
 
@@ -83,10 +84,13 @@ class VideoReceive(threading.Thread):
         threading.Thread.__init__(self)
     def run(self):
         try:
-            eos = lambda : self.gstream.EOS.is_set() if self.FPS == -1 else self.gstream.EOS.wait(1. / self.FPS)
+            skip_timeout = lambda : self.FPS == -1
+            eos = lambda : 
+                self.gstream.EOS.is_set() 
+                if skip_timeout() 
+                else self.gstream.EOS.wait(1. / self.FPS)
             while not eos():
-                # Once we've waited the obligated FPS, then we wait for 
-                # a frame to actually become available.
+                # Wait for a frame to become available.
                 self.gstream.frame_available.wait()
                 frame = self.gstream.get_frame()
                 resume = self.on_video(frame)

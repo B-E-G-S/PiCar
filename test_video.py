@@ -1,4 +1,4 @@
-from camerastream import *
+from camerastream import VideoReceive
 import cv2
 from time import sleep
 
