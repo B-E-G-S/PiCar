@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>560</width>
-    <height>611</height>
+    <width>633</width>
+    <height>603</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -60,44 +60,41 @@
        </layout>
       </item>
       <item>
-       <widget class="QFrame" name="video_placeholder">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="baseSize">
-         <size>
-          <width>400</width>
-          <height>400</height>
-         </size>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Box</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-       </widget>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QFrame" name="video_placeholder">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>400</width>
+            <height>400</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Box</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
     <item>
      <layout class="QGridLayout" name="control_layout">
-      <item row="2" column="0">
-       <widget class="QLabel" name="angle_label">
-        <property name="text">
-         <string>Wheel angle:</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="3">
        <widget class="QPushButton" name="stop_button">
         <property name="text">
@@ -105,33 +102,32 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QSpinBox" name="angle_box">
-        <property name="suffix">
-         <string> degrees</string>
+      <item row="2" column="0">
+       <widget class="QLabel" name="angle_label">
+        <property name="text">
+         <string>Wheel angle:</string>
         </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QSlider" name="angle_slider">
         <property name="minimum">
-         <number>45</number>
+         <number>-90</number>
         </property>
         <property name="maximum">
-         <number>135</number>
-        </property>
-        <property name="value">
          <number>90</number>
         </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="speed_box">
-        <property name="maximum">
-         <number>100</number>
+        <property name="value">
+         <number>0</number>
         </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="speed_label">
-        <property name="text">
-         <string>Speed:</string>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="tickPosition">
+         <enum>QSlider::TicksBothSides</enum>
+        </property>
+        <property name="tickInterval">
+         <number>30</number>
         </property>
        </widget>
       </item>
@@ -145,6 +141,13 @@
         </property>
        </widget>
       </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="speed_label">
+        <property name="text">
+         <string>Speed:</string>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="3">
        <widget class="QPushButton" name="center_button">
         <property name="text">
@@ -152,25 +155,19 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="2">
-       <widget class="QSlider" name="angle_slider">
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="angle_box">
+        <property name="suffix">
+         <string> degrees</string>
+        </property>
         <property name="minimum">
-         <number>45</number>
+         <number>-90</number>
         </property>
         <property name="maximum">
-         <number>135</number>
-        </property>
-        <property name="value">
          <number>90</number>
         </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksBothSides</enum>
-        </property>
-        <property name="tickInterval">
-         <number>15</number>
+        <property name="value">
+         <number>0</number>
         </property>
        </widget>
       </item>
@@ -186,7 +183,21 @@
          <enum>QSlider::TicksBothSides</enum>
         </property>
         <property name="tickInterval">
-         <number>10</number>
+         <number>25</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="speed_box">
+        <property name="maximum">
+         <number>100</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QPushButton" name="test_packet_button">
+        <property name="text">
+         <string>Test Packet</string>
         </property>
        </widget>
       </item>
@@ -199,7 +210,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>560</width>
+     <width>633</width>
      <height>21</height>
     </rect>
    </property>
